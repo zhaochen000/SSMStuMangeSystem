@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.woniu.dao.EducationDao">
+	<sql id="base_col_list">
+		infoID,infoName,infoAdd,publishDate,infoContent
+	</sql>
+    <select id="findAll" resultType="newInfo">
+		select
+		<include refid="base_col_list"></include>
+		from newinfo	
+	</select>
+	<select id="findOneByLookID"  parameterType="int" resultType="newInfo">
+		select
+		<include refid="base_col_list"></include>
+		from newinfo	
+		where infoID=#{infoID}
+	</select>
+	<!-- 分页和查询 -->
+	<select id="selectByPage" parameterType="pageBean" resultType="newInfo">
+		select
+		<include refid="base_col_list"></include>
+		from newinfo
+		<where>
+			<if test="queryVal!=null">
+				infoName like CONCAT('%',#{queryVal},'%')
+			</if>
+		</where> 
+		<!-- limit 起始位置,每页行数 -->
+		limit ${(nowPage-1)*pageRow},${pageRow}
+	</select>
+	<select id="countAll" parameterType="pageBean" resultType="int">
+		select count(*) from newinfo
+		 <where>
+			<if test="queryVal!=null">
+				infoName like CONCAT('%',#{queryVal},'%')
+			</if>
+		</where> 
+	</select>
+    <insert id="add" parameterType="newInfo">
+		insert into newinfo
+		values(#{infoID},#{infoName},#{infoAdd},#{publishDate},#{infoContent})
+	</insert>
+
+    <delete id="delete">
+        delete from newinfo where infoID=#{infoID}
+    </delete>
+    
+    <select id="findOne" parameterType="java.lang.Integer" resultType="newInfo">
+		select
+		<include refid="base_col_list"></include>
+		from newinfo
+		where infoID=#{infoID}
+	</select>
+	<update id="update" parameterType="newInfo">
+		update newinfo
+		<set>
+			<if test="infoName!=null">
+				infoName=#{infoName},
+			</if>
+			<if test="infoAdd!=null">
+				infoAdd=#{infoAdd},
+			</if>	
+			<if test="publishDate!=null">
+				publishDate=#{publishDate},
+			</if>
+			<if test="infoContent!=null">
+				infoContent=#{infoContent},
+			</if>
+		</set>
+		<where>
+			infoID=#{infoID}
+		</where>
+	</update>
+	<!-- 批量删除 -->
+	<delete id="delNewInfos">
+		delete from newinfo
+		<where>
+			<foreach collection="array" item="infoID" open="infoID in(" close=")" separator=",">
+				#{infoID}
+			</foreach>
+		</where>
+	</delete>
+	
+</mapper>

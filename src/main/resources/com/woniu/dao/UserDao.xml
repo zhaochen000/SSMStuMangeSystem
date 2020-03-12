@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.woniu.dao.UserDao">
+	<sql id="base_col_list">
+		uid,uname,upwd,uemail
+	</sql>
+	<!-- 查询全部，不带条件 -->
+	<select id="login" parameterType="user" resultType="user">
+		select
+		<include refid="base_col_list"></include>
+		from user
+		where uname=#{uname} and upwd=#{upwd}
+	</select>
+	<!-- 分页展示 -->
+	<select id="findAll" resultType="user">
+		select
+		<include refid="base_col_list"></include>
+		from user
+	</select>
+	<!-- 分页和查询 -->
+	<select id="selectByPage" parameterType="pageBean" resultType="user">
+		select
+		<include refid="base_col_list"></include>
+		from user
+		<!-- 模糊查询条件 -->
+		<where>
+			<if test="queryVal!=null">
+				uname like CONCAT('%',#{queryVal},'%')
+			</if>
+		</where>
+	
+		<!-- limit 起始位置,每页行数 -->
+		limit ${(nowPage-1)*pageRow},${pageRow}
+	</select>
+	<select id="countAll" parameterType="pageBean" resultType="int">
+		select count(*) from user
+		<where>
+			<if test="queryVal!=null">
+				uname like CONCAT('%',#{queryVal},'%')
+			</if>
+		</where>
+	</select>
+	<!-- 增加 -->
+	<insert id="add" parameterType="user">
+		insert into user
+		values(#{uid},#{uname},#{upwd},#{uemail})
+	</insert>
+	<!-- 修改 -->
+	<select id="findOne" parameterType="java.lang.Integer"
+		resultType="user">
+		select
+		<include refid="base_col_list"></include>
+		from user
+		where uid=#{uid}
+	</select>
+	<update id="update" parameterType="user">
+		update user
+		<set>
+			<if test="uname!=null">
+				uname=#{uname},
+			</if>
+			<if test="upwd!=null">
+				upwd=#{upwd},
+			</if>	
+			<if test="uemail!=null">
+				uemail=#{uemail},
+			</if>
+		</set>
+		<where>
+			uid=#{uid}
+		</where>
+	</update>
+	<!-- 删除 -->
+	<delete id="delete" parameterType="int">
+		delete from user where uid=#{uid}
+	</delete>
+	<!-- 批量删除 -->
+	<delete id="deleteUsers">
+		delete from user
+		<where>
+			<foreach collection="array" item="uid" open="uid in(" close=")" separator=",">
+				#{uid}
+			</foreach>
+		</where>
+	</delete>
+	<!-- 为用户分配角色 -->
+	<insert id="assignRoles">
+	    insert into userRole values
+	    <foreach collection="rids" item="rid"  separator=",">
+	        (#{null},#{uid},#{rid})
+	    </foreach>
+	</insert>
+	<!-- 删除分配的用户角色 -->
+    <delete id="assignRolesDel">
+		delete from userRole
+		<where>    	
+			<foreach collection="rids" item="rid" open="rid in(" close=")" separator=",">
+				#{rid}
+			</foreach>
+			and uid=#{uid}
+		</where>	
+	 </delete> 
+	 
+	 <select id="selectPermissionByUser" parameterType="user" resultType="permission">
+     	select * from permission where pid in(
+	    select pid from rolePermission where rid in
+	    (select rid from userRole where uid=#{uid}))
+    </select>
+	
+</mapper>

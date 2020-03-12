@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.woniu.dao.RoleDao">
+	<sql id="base_col_list">
+		rid,rname
+	</sql>
+	<sql id="base_col_list2">
+		urid,uid,rid
+	</sql>
+	<select id="selectByPage" parameterType="pageBean" resultType="role">
+		select
+		<include refid="base_col_list"></include>
+		from role
+		<where>
+			<if test="queryVal!=null">
+				rname like concat('%',#{queryVal},'%')
+			</if>
+
+		</where>
+		<!-- limit 起始位置,每页行数 -->
+		limit ${(nowPage-1)*pageRow},${pageRow}
+	</select>
+	<select id="countByPage" parameterType="pageBean" resultType="int">
+		select count(*) from role
+		<where>
+			<if test="queryVal!=null">
+				rname like CONCAT('%',#{queryVal},'%')
+			</if>
+		</where>
+	</select>
+	<insert id="save" parameterType="role">
+		insert into role values(#{rid},#{rname})
+	</insert>
+	<select id="findOne" parameterType="int" resultType="role">
+		select
+		<include refid="base_col_list"></include>
+		from role
+		<where>
+			rid=#{rid}
+		</where>
+	</select>
+	<update id="update" parameterType="int">
+		update role
+		<set>
+			<if test="rname!=null">
+				rname=#{rname},
+			</if>
+		</set>
+		<where>
+			rid=#{rid}
+		</where>
+	</update>
+	<delete id="delete" parameterType="int">
+		delete from role where rid=#{rid}
+	</delete>
+	<delete id="deleteRoles">
+		delete from role
+		<where>
+			rid in
+			<foreach collection="array" item="rid" open="(" close=")"
+				separator=",">
+				#{rid}
+			</foreach>
+		</where>
+	</delete>
+	<select id="findAll" resultType="role">
+		select
+		<include refid="base_col_list"></include>
+		from role
+	</select>
+
+    <!-- 关联查询，显示已经分配的角色 -->
+	 <select id="findRoleByUid" parameterType="int" resultMap="urrMap">
+		select
+		<include refid="base_col_list2"></include>
+		from userRole where uid=#{uid}
+	</select>
+	<resultMap id="urrMap" type="userRole">
+		<id property="urid" column="urid"></id>
+		<result property="uid" column="uid"></result>
+		<association property="role" javaType="role" column="rid" select="com.woniu.dao.RoleDao.findOne" ></association>
+	</resultMap>  
+	<select id="findAssignByRid" parameterType="int" resultType="int">
+ 		<!-- 因为查询时，只使用pid的值，所以这里不能写*，如果写*，就会将第一列封装进去 -->
+ 		select pid
+ 		from rolePermission
+ 		where rid =#{rid}
+ 	</select>
+	
+	<!-- 为角色分配权限 -->
+	<insert id="assignPermission">
+ 		insert into rolePermission values
+ 		<foreach collection="pids" separator="," item="pid">
+ 		(#{rpid},#{pid},#{rid})
+ 		</foreach>
+ 	</insert>
+ 	<delete id="deleteAssignPermissionByRid" parameterType="int">
+ 		delete from rolePermission where rid=#{rid}
+ 	</delete>
+	
+</mapper>
