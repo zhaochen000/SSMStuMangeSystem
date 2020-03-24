@@ -57,7 +57,10 @@ public class CourseController {
 		courseService.updateOne(course);
 		return "/course/courseList";
 	}
-	
-	
+
+	@RequestMapping("dsaf")
+	public static void getStr(){
+		System.out.println("张三天下无敌");
+	}
 	
 }
