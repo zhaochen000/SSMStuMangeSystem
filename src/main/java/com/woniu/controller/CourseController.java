@@ -61,6 +61,7 @@ public class CourseController {
 	@RequestMapping("dsaf")
 	public static void getStr(){
 		System.out.println("张三天下无敌");
+		System.out.println("l李四的哥哥");
 	}
 	
 }
